@@ -2,11 +2,11 @@ import random
 import re
 import string
 import psycopg2
-from flask import Flask, render_template, request, redirect, url_for, flash, session
+from flask import Flask, render_template, request, redirect, url_for, flash, session, jsonify
 from werkzeug.security import generate_password_hash
 from flask_mail import Mail, Message
 
-app = Flask(__name__)
+app = Flask(_name_)
 
 app.secret_key = '123456'
 
@@ -17,6 +17,14 @@ app.config['MAIL_USERNAME'] = 'sarananibolivia25@gmail.com'  # Cambia esto
 app.config['MAIL_PASSWORD'] = 'xpyt iloj iwjj lrys'  # Cambia esto
 app.config['MAIL_USE_TLS'] = True
 mail = Mail(app)
+
+# Datos de ejemplo para países y ciudades
+paises_ciudades = {
+    "Argentina": ["Buenos Aires", "Córdoba", "Rosario"],
+    "México": ["Ciudad de México", "Guadalajara", "Monterrey"],
+    "España": ["Madrid", "Barcelona", "Valencia"],
+    # Agrega más países y ciudades según sea necesario
+}
 
 # Función para obtener la conexión a la base de datos
 def get_db_connection():
@@ -36,27 +44,32 @@ def home():
 @app.route('/registro', methods=['GET', 'POST'])
 def registro():
     if request.method == 'POST':
-        nombre = request.form['nombre']
-        correo = request.form['correo']
-        contraseña = request.form['contraseña']
-        telefono = request.form['telefono']
+        nombre = request.form.get('nombre')
+        apellido = request.form.get('apellido')
+        correo = request.form.get('correo')
+        contraseña = request.form.get('contraseña')
+        confirmacion_contraseña = request.form.get('confirmacion_contraseña')
+        genero = request.form.get('genero')
+        telefono = request.form.get('telefono')
+        pais = request.form.get('pais')
+        ciudad = request.form.get('ciudad')
         
         # Validaciones
-        if not nombre or not correo or not contraseña or not telefono:
-            flash('Todos los campos son obligatorios.', 'danger')
-            return render_template('registro.html')
+        if not correo or not contraseña or not confirmacion_contraseña or not pais or not ciudad:
+            flash('Todos los campos obligatorios deben ser completados.', 'danger')
+            return render_template('registro.html', paises=paises_ciudades.keys())
 
         if not re.match(r"[^@]+@[^@]+\.[^@]+", correo):
             flash('Correo inválido', 'danger')
-            return render_template('registro.html')
+            return render_template('registro.html', paises=paises_ciudades.keys())
 
-        if not telefono.isdigit():
-            flash('El teléfono debe contener solo números', 'danger')
-            return render_template('registro.html')
+        if contraseña != confirmacion_contraseña:
+            flash('Las contraseñas no coinciden.', 'danger')
+            return render_template('registro.html', paises=paises_ciudades.keys())
 
         if not validar_contraseña(contraseña):
             flash('La contraseña debe tener al menos 8 caracteres, incluyendo una mayúscula, una minúscula, un número y un símbolo especial.', 'danger')
-            return render_template('registro.html')
+            return render_template('registro.html', paises=paises_ciudades.keys())
 
         contraseña_hash = generate_password_hash(contraseña)
 
@@ -70,9 +83,9 @@ def registro():
             conn = get_db_connection()
             cur = conn.cursor()
             cur.execute(
-                "INSERT INTO usuarios (nombre, correo, contraseña, telefono, codigo_verificacion, verificado) "
-                "VALUES (%s, %s, %s, %s, %s, %s)", 
-                (nombre, correo, contraseña_hash, telefono, codigo_verificacion, False)
+                "INSERT INTO usuarios (nombre, apellido, correo, contraseña, genero, telefono, pais, ciudad, codigo_verificacion, verificado) "
+                "VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)", 
+                (nombre, apellido, correo, contraseña_hash, genero, telefono, pais, ciudad, codigo_verificacion, False)
             )
             conn.commit()
 
@@ -96,7 +109,13 @@ def registro():
             if conn:
                 conn.close()
 
-    return render_template('registro.html')
+    return render_template('registro.html', paises=paises_ciudades.keys())
+
+# Ruta para obtener ciudades según el país seleccionado
+@app.route('/obtener_ciudades/<pais>')
+def obtener_ciudades(pais):
+    ciudades = paises_ciudades.get(pais, [])
+    return jsonify(ciudades)
 
 # Ruta para verificar el código de registro
 @app.route('/verificar_codigo_registro', methods=['GET', 'POST'])
@@ -152,5 +171,5 @@ def validar_contraseña(contraseña):
 def generar_codigo(length=6):
     return ''.join(random.choices(string.ascii_uppercase + string.digits, k=length))
 
-if __name__ == '__main__':
+if _name_ == '_main_':
     app.run(debug=True)
