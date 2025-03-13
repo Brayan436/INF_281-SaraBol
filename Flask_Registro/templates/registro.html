@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Registro</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
+</head>
+<body>
+    <div class="container mt-5">
+        <h2>Registro de Usuario</h2>
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div class="alert alert-{{ category }}">
+                        {{ message }}
+                    </div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+        <form method="POST">
+            <div class="form-group">
+                <label for="nombre">Nombre:</label>
+                <input type="text" class="form-control" id="nombre" name="nombre">
+            </div>
+            <div class="form-group">
+                <label for="apellido">Apellido:</label>
+                <input type="text" class="form-control" id="apellido" name="apellido">
+            </div>
+            <div class="form-group">
+                <label for="correo">Correo Electrónico:</label>
+                <input type="email" class="form-control" id="correo" name="correo" required>
+            </div>
+            <div class="form-group">
+                <label for="contraseña">Contraseña:</label>
+                <input type="password" class="form-control" id="contraseña" name="contraseña" required>
+            </div>
+            <div class="form-group">
+                <label for="confirmacion_contraseña">Confirmar Contraseña:</label>
+                <input type="password" class="form-control" id="confirmacion_contraseña" name="confirmacion_contraseña" required>
+            </div>
+            <div class="form-group">
+                <label for="genero">Género:</label>
+                <select class="form-control" id="genero" name="genero">
+                    <option value="">Seleccione...</option>
+                    <option value="Masculino">Masculino</option>
+                    <option value="Femenino">Femenino</option>
+                    <option value="Otro">Otro</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="telefono">Teléfono:</label>
+                <input type="text" class="form-control" id="telefono" name="telefono">
+            </div>
+            <div class="form-group">
+                <label for="pais">País:</label>
+                <select class="form-control" id="pais" name="pais" required>
+                    <option value="">Seleccione...</option>
+                    {% for pais in paises %}
+                        <option value="{{ pais }}">{{ pais }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="ciudad">Ciudad:</label>
+                <select class="form-control" id="ciudad" name="ciudad" required>
+                    <option value="">Seleccione...</option>
+                </select>
+            </div>
+            <button type="submit" class="btn btn-primary">Registrarse</button>
+        </form>
+    </div>
+
+    <script>
+        $(document).ready(function() {
+            $('#pais').change(function() {
+                var pais = $(this).val();
+                if (pais) {
+                    $.ajax({
+                        url: '/obtener_ciudades/' + pais,
+                        type: 'GET',
+                        success: function(response) {
+                            console.log("Respuesta del servidor:", response);
+                            $('#ciudad').empty();
+                            $('#ciudad').append('<option value="">Seleccione...</option>');
+                            if (response.length > 0) {
+                                response.forEach(function(ciudad) {
+                                    $('#ciudad').append('<option value="' + ciudad + '">' + ciudad + '</option>');
+                                });
+                            } else {
+                                $('#ciudad').append('<option value="">No hay ciudades disponibles</option>');
+                            }
+                        },
+                        error: function(xhr, status, error) {
+                            console.error("Error al obtener ciudades:", error);
+                        }
+                    });
+                } else {
+                    $('#ciudad').empty();
+                    $('#ciudad').append('<option value="">Seleccione...</option>');
+                }
+            });
+        });
+    </script>
+</body>
+</html>
