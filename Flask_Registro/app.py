@@ -13,8 +13,8 @@ app.secret_key = '123456'
 # Configuración de Flask-Mail
 app.config['MAIL_SERVER'] = 'smtp.gmail.com'
 app.config['MAIL_PORT'] = 587
-app.config['MAIL_USERNAME'] = 'sarananibolivia25@gmail.com'  # Cambia esto
-app.config['MAIL_PASSWORD'] = 'xpyt iloj iwjj lrys'  # Cambia esto
+app.config['MAIL_USERNAME'] =   # Cambia esto , añadir tu correo 
+app.config['MAIL_PASSWORD'] =   # Cambia esto
 app.config['MAIL_USE_TLS'] = True
 mail = Mail(app)
 
